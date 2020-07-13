@@ -10,14 +10,6 @@ import (
 	_ "github.com/lib/pq"
 )
 
-const (
-	host     = "localhost"
-	port     = 5432
-	user     = "postgres"
-	password = ""
-	dbname   = "test"
-)
-
 // User struct contains user data
 type User struct {
 	ID   int    `json:"userid"`
@@ -44,11 +36,16 @@ func handleRequests() {
 }
 
 func connectToDb() {
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
+	const (
+		DB_USER     = "postgres"
+		DB_PASSWORD = ""
+		DB_NAME     = "test"
+	)
 
-	db, err := sql.Open("postgres", psqlInfo)
+	dbConfig := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable",
+		DB_USER, DB_PASSWORD, DB_NAME)
+
+	db, err := sql.Open("postgres", dbConfig)
 	if err != nil {
 		panic(err)
 	}
@@ -72,6 +69,7 @@ func connectToDb() {
 }
 
 func main() {
+	fmt.Println("Server is running on localhost:8080")
 
 	connectToDb()
 
@@ -82,6 +80,5 @@ func main() {
 		User{ID: 2, Name: "Testmothy"},
 	}
 
-	fmt.Println("Server is running on port :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
