@@ -62,11 +62,10 @@ func connectToDb() {
 	fmt.Println(" id | username ")
 	fmt.Println("----|---------")
 	for rows.Next() {
-		var id int
-		var username string
-		err = rows.Scan(&id, &username)
+		var myUser User
+		err = rows.Scan(&myUser.ID, &myUser.Name)
 		checkErr(err)
-		fmt.Printf("%3v |%8v \n", id, username)
+		fmt.Printf("%3v |%8v \n", myUser.ID, myUser.Name)
 	}
 }
 
