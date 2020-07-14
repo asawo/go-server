@@ -46,26 +46,34 @@ func connectToDb() {
 		DB_USER, DB_PASSWORD, DB_NAME)
 
 	db, err := sql.Open("postgres", dbConfig)
-	if err != nil {
-		panic(err)
-	}
+	checkErr(err)
 	defer db.Close()
 
 	err = db.Ping()
-	if err != nil {
-		panic(err)
-	}
+	checkErr(err)
 
 	fmt.Println("Successfully connected!")
 
-	var myUser User
-	query := `SELECT * FROM test WHERE id = $1`
-	err = db.QueryRow(query, 1).Scan(&myUser.ID, &myUser.Name)
-	if err != nil {
-		log.Fatal("Failed to execute query: ", err)
-	}
+	// Test query
+	fmt.Println("# Querying")
+	rows, err := db.Query("SELECT * FROM test")
+	checkErr(err)
 
-	fmt.Printf("Hi %s, welcome back!\n", myUser.Name)
+	fmt.Println(" id | username ")
+	fmt.Println("----|---------")
+	for rows.Next() {
+		var id int
+		var username string
+		err = rows.Scan(&id, &username)
+		checkErr(err)
+		fmt.Printf("%3v |%8v \n", id, username)
+	}
+}
+
+func checkErr(err error) {
+	if err != nil {
+		panic(err)
+	}
 }
 
 func main() {
