@@ -24,18 +24,34 @@ func home(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Req made to endpoint: home")
 }
 
-func getUsers(w http.ResponseWriter, r *http.Request) {
-
-	json.NewEncoder(w).Encode(Users)
-	fmt.Println("Req made to endpoint: users")
+func users(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	switch r.Method {
+	case "GET":
+		w.WriteHeader(http.StatusOK)
+		// w.Write([]byte(`{"message": "get called"}`,))
+		json.NewEncoder(w).Encode(Users)
+	case "POST":
+		w.WriteHeader(http.StatusCreated)
+		w.Write([]byte(`{"message": "post called"}`))
+	case "PUT":
+		w.WriteHeader(http.StatusAccepted)
+		w.Write([]byte(`{"message": "put called"}`))
+	case "DELETE":
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"message": "delete called"}`))
+	default:
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(`{"message": "not found"}`))
+	}
 }
 
 func handleRequests() {
 	http.HandleFunc("/", home)
-	http.HandleFunc("/users", getUsers)
+	http.HandleFunc("/users", users)
 }
 
-func connectToDb() {
+func connectToDb() *sql.DB {
 	const (
 		DB_USER     = "postgres"
 		DB_PASSWORD = ""
@@ -47,38 +63,44 @@ func connectToDb() {
 
 	db, err := sql.Open("postgres", dbConfig)
 	checkErr(err)
-	defer db.Close()
 
 	err = db.Ping()
 	checkErr(err)
 
 	fmt.Println("Successfully connected!")
 
-	// Test query
+	return db
+}
+
+func getQuery(db *sql.DB) {
 	fmt.Println("# Querying")
+
 	rows, err := db.Query("SELECT * FROM test")
 	checkErr(err)
+	defer rows.Close()
+	defer db.Close()
 
 	fmt.Println(" id | username ")
 	fmt.Println("----|---------")
 	for rows.Next() {
-		var myUser User
-		err = rows.Scan(&myUser.ID, &myUser.Name)
+		var dbUser User
+		err = rows.Scan(&dbUser.ID, &dbUser.Name)
 		checkErr(err)
-		fmt.Printf("%3v |%8v \n", myUser.ID, myUser.Name)
+		fmt.Printf("%3v |%8v \n", dbUser.ID, dbUser.Name)
 	}
 }
 
 func checkErr(err error) {
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 }
 
 func main() {
 	fmt.Println("Server is running on localhost:8080")
 
-	connectToDb()
+	db := connectToDb()
+	getQuery(db)
 
 	handleRequests()
 
