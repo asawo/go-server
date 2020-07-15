@@ -36,39 +36,33 @@ func users(w http.ResponseWriter, r *http.Request) {
 	db := connectToDb()
 	err := r.ParseForm()
 	checkErr(err)
+
 	switch r.Method {
 	case "GET":
 		w.WriteHeader(http.StatusOK)
 		getUsers(db)
-
 	case "POST":
 		w.WriteHeader(http.StatusCreated)
-
 		name := r.FormValue("name")
 		createUser(db, name)
-
 	case "PUT":
 		w.WriteHeader(http.StatusAccepted)
-
 		s := r.FormValue("id")
 		id, err := strconv.Atoi(s)
 		checkErr(err)
 		newName := r.FormValue("new name")
-
 		updateUser(db, id, newName)
-
 	case "DELETE":
 		w.WriteHeader(http.StatusOK)
-
 		s := r.FormValue("id")
 		id, err := strconv.Atoi(s)
 		checkErr(err)
-
 		deleteUser(db, id)
 	default:
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(`{"message": "not found"}`))
 	}
+
 	json.NewEncoder(w).Encode(Users)
 }
 
@@ -91,9 +85,9 @@ func connectToDb() *sql.DB {
 	return db
 }
 
-func getUsers(db *sql.DB) {
+func getUsers(db *sql.DB) []User {
 	fmt.Println("#getUsers()")
-
+	Users = []User{}
 	rows, err := db.Query("SELECT * FROM test;")
 	checkErr(err)
 	defer rows.Close()
@@ -108,6 +102,7 @@ func getUsers(db *sql.DB) {
 		Users = append(Users, dbUser)
 		fmt.Printf("%3v |%8v \n", dbUser.ID, dbUser.Name)
 	}
+	return Users
 }
 
 func createUser(db *sql.DB, name string) {
