@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 
@@ -19,6 +20,11 @@ type User struct {
 // Users contains multiple user data
 var Users []User
 
+func handleRequests() {
+	http.HandleFunc("/", home)
+	http.HandleFunc("/users", users)
+}
+
 func home(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Welcome to Home!")
 	fmt.Println("Req made to endpoint: home")
@@ -29,11 +35,22 @@ func users(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		w.WriteHeader(http.StatusOK)
-		// w.Write([]byte(`{"message": "get called"}`,))
+		db := connectToDb()
+		getUsers(db)
 		json.NewEncoder(w).Encode(Users)
 	case "POST":
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(`{"message": "post called"}`))
+		err := r.ParseForm()
+		checkErr(err)
+
+		reqBody, err := ioutil.ReadAll(r.Body)
+		checkErr(err)
+		fmt.Printf("reqBody: %s /n", reqBody)
+
+		db := connectToDb()
+		// postUser(db, reqBody.name)
+		getUsers(db)
+		json.NewEncoder(w).Encode(Users)
 	case "PUT":
 		w.WriteHeader(http.StatusAccepted)
 		w.Write([]byte(`{"message": "put called"}`))
@@ -44,11 +61,6 @@ func users(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(`{"message": "not found"}`))
 	}
-}
-
-func handleRequests() {
-	http.HandleFunc("/", home)
-	http.HandleFunc("/users", users)
 }
 
 func connectToDb() *sql.DB {
@@ -72,8 +84,8 @@ func connectToDb() *sql.DB {
 	return db
 }
 
-func getQuery(db *sql.DB) {
-	fmt.Println("# Querying")
+func getUsers(db *sql.DB) {
+	fmt.Println("# GET")
 
 	rows, err := db.Query("SELECT * FROM test")
 	checkErr(err)
@@ -89,7 +101,15 @@ func getQuery(db *sql.DB) {
 		Users = append(Users, dbUser)
 		fmt.Printf("%3v |%8v \n", dbUser.ID, dbUser.Name)
 	}
-	fmt.Println(Users)
+}
+
+func postUser(db *sql.DB, name string) {
+	fmt.Println("# POST")
+
+	sqlStatement := `INSERT INTO test (name) VALUES ($1)`
+	_, err := db.Exec(sqlStatement, name)
+	checkErr(err)
+	fmt.Printf("Added user %s", name)
 }
 
 func checkErr(err error) {
@@ -100,9 +120,6 @@ func checkErr(err error) {
 
 func main() {
 	fmt.Println("Server is running on localhost:8080")
-
-	db := connectToDb()
-	getQuery(db)
 
 	handleRequests()
 
