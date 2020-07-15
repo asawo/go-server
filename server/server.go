@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
+	"strconv"
 
 	_ "github.com/lib/pq"
 )
@@ -32,32 +32,44 @@ func home(w http.ResponseWriter, r *http.Request) {
 
 func users(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	db := connectToDb()
+	err := r.ParseForm()
+	checkErr(err)
 	switch r.Method {
 	case "GET":
 		w.WriteHeader(http.StatusOK)
-		db := connectToDb()
 		getUsers(db)
-		json.NewEncoder(w).Encode(Users)
+
 	case "POST":
 		w.WriteHeader(http.StatusCreated)
-		err := r.ParseForm()
-		checkErr(err)
 
-		name := strings.Join(r.Form["name"], "")
+		name := r.FormValue("name")
+		createUser(db, name)
 
-		db := connectToDb()
-		postUser(db, name)
-		json.NewEncoder(w).Encode(Users)
 	case "PUT":
 		w.WriteHeader(http.StatusAccepted)
-		w.Write([]byte(`{"message": "put called"}`))
+
+		s := r.FormValue("id")
+		id, err := strconv.Atoi(s)
+		checkErr(err)
+		newName := r.FormValue("new name")
+
+		updateUser(db, id, newName)
+
 	case "DELETE":
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"message": "delete called"}`))
+
+		s := r.FormValue("id")
+		id, err := strconv.Atoi(s)
+		checkErr(err)
+
+		deleteUser(db, id)
 	default:
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(`{"message": "not found"}`))
 	}
+	json.NewEncoder(w).Encode(Users)
 }
 
 func connectToDb() *sql.DB {
@@ -76,15 +88,13 @@ func connectToDb() *sql.DB {
 	err = db.Ping()
 	checkErr(err)
 
-	fmt.Println("Successfully connected!")
-
 	return db
 }
 
 func getUsers(db *sql.DB) {
-	fmt.Println("# GET")
+	fmt.Println("#getUsers()")
 
-	rows, err := db.Query("SELECT * FROM test")
+	rows, err := db.Query("SELECT * FROM test;")
 	checkErr(err)
 	defer rows.Close()
 	defer db.Close()
@@ -100,13 +110,40 @@ func getUsers(db *sql.DB) {
 	}
 }
 
-func postUser(db *sql.DB, name string) {
-	fmt.Println("# POST")
+func createUser(db *sql.DB, name string) {
+	fmt.Println("#createUser()")
 
-	sqlStatement := `INSERT INTO test (name) VALUES ($1)`
+	sqlStatement := `INSERT INTO test (name) VALUES ($1);`
 	_, err := db.Exec(sqlStatement, name)
 	checkErr(err)
-	fmt.Printf("Added user %s", name)
+	fmt.Printf("Added user %s\n", name)
+
+	getUsers(db)
+}
+
+func updateUser(db *sql.DB, id int, name string) {
+	fmt.Println("#updateUser()")
+	sqlStatement := `
+UPDATE test 
+SET "name" = $1 
+WHERE id = $2;`
+
+	_, err := db.Exec(sqlStatement, name, id)
+	checkErr(err)
+	fmt.Printf("Updated user id %d's name to %s\n", id, name)
+
+	getUsers(db)
+}
+
+func deleteUser(db *sql.DB, id int) {
+	fmt.Println("#deleteUser()")
+	sqlStatement := `
+DELETE FROM test  
+WHERE id = $1;`
+
+	_, err := db.Exec(sqlStatement, id)
+	checkErr(err)
+	fmt.Printf("Deleted user id %d\n", id)
 
 	getUsers(db)
 }
