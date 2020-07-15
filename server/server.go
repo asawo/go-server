@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 
 	_ "github.com/lib/pq"
 )
@@ -43,13 +43,10 @@ func users(w http.ResponseWriter, r *http.Request) {
 		err := r.ParseForm()
 		checkErr(err)
 
-		reqBody, err := ioutil.ReadAll(r.Body)
-		checkErr(err)
-		fmt.Printf("reqBody: %s /n", reqBody)
+		name := strings.Join(r.Form["name"], "")
 
 		db := connectToDb()
-		// postUser(db, reqBody.name)
-		getUsers(db)
+		postUser(db, name)
 		json.NewEncoder(w).Encode(Users)
 	case "PUT":
 		w.WriteHeader(http.StatusAccepted)
@@ -110,6 +107,8 @@ func postUser(db *sql.DB, name string) {
 	_, err := db.Exec(sqlStatement, name)
 	checkErr(err)
 	fmt.Printf("Added user %s", name)
+
+	getUsers(db)
 }
 
 func checkErr(err error) {
