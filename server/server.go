@@ -86,8 +86,10 @@ func getQuery(db *sql.DB) {
 		var dbUser User
 		err = rows.Scan(&dbUser.ID, &dbUser.Name)
 		checkErr(err)
+		Users = append(Users, dbUser)
 		fmt.Printf("%3v |%8v \n", dbUser.ID, dbUser.Name)
 	}
+	fmt.Println(Users)
 }
 
 func checkErr(err error) {
@@ -103,11 +105,6 @@ func main() {
 	getQuery(db)
 
 	handleRequests()
-
-	Users = []User{
-		User{ID: 1, Name: "Arthur"},
-		User{ID: 2, Name: "Testmothy"},
-	}
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
