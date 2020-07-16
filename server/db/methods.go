@@ -19,7 +19,7 @@ var Users []User
 
 // PostgresDb is a sql.DB struct
 type PostgresDb struct {
-	db *sql.DB
+	Db *sql.DB
 }
 
 var postgres PostgresDb
@@ -36,10 +36,10 @@ func ConnectToDb() PostgresDb {
 		DB_USER, DB_PASSWORD, DB_NAME)
 
 	var err error
-	postgres.db, err = sql.Open("postgres", dbConfig)
+	postgres.Db, err = sql.Open("postgres", dbConfig)
 	checkErr(err)
 
-	err = postgres.db.Ping()
+	err = postgres.Db.Ping()
 	checkErr(err)
 
 	return postgres
@@ -50,10 +50,10 @@ func (postgres *PostgresDb) GetUsers() []User {
 	fmt.Println("#getUsers()")
 	Users = []User{}
 
-	rows, err := postgres.db.Query("SELECT * FROM test;")
+	rows, err := postgres.Db.Query("SELECT * FROM test;")
 	checkErr(err)
 	defer rows.Close()
-	defer postgres.db.Close()
+	defer postgres.Db.Close()
 
 	fmt.Println(" id | username ")
 	fmt.Println("----|---------")
@@ -72,7 +72,7 @@ func (postgres *PostgresDb) CreateUser(name string) {
 	fmt.Println("#createUser()")
 
 	sqlStatement := `INSERT INTO test (name) VALUES ($1);`
-	_, err := postgres.db.Exec(sqlStatement, name)
+	_, err := postgres.Db.Exec(sqlStatement, name)
 	checkErr(err)
 	fmt.Printf("Added user %s\n", name)
 	postgres.GetUsers()
@@ -86,7 +86,7 @@ UPDATE test
 SET "name" = $1 
 WHERE id = $2;`
 
-	_, err := postgres.db.Exec(sqlStatement, name, id)
+	_, err := postgres.Db.Exec(sqlStatement, name, id)
 	checkErr(err)
 	fmt.Printf("Updated user id %d's name to %s\n", id, name)
 	postgres.GetUsers()
@@ -99,7 +99,7 @@ func (postgres *PostgresDb) DeleteUser(id int) {
 DELETE FROM test  
 WHERE id = $1;`
 
-	_, err := postgres.db.Exec(sqlStatement, id)
+	_, err := postgres.Db.Exec(sqlStatement, id)
 	checkErr(err)
 	fmt.Printf("Deleted user id %d\n", id)
 	postgres.GetUsers()

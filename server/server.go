@@ -31,29 +31,28 @@ func users(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		w.WriteHeader(http.StatusOK)
-		Users = pg.db.GetUsers()
+		Users = pg.GetUsers()
 	case "POST":
 		w.WriteHeader(http.StatusCreated)
 		name := r.FormValue("name")
-		db.CreateUser(name)
+		pg.CreateUser(name)
 	case "PUT":
 		w.WriteHeader(http.StatusAccepted)
 		s := r.FormValue("id")
 		id, err := strconv.Atoi(s)
 		checkErr(err)
 		newName := r.FormValue("new name")
-		db.UpdateUser(id, newName)
+		pg.UpdateUser(id, newName)
 	case "DELETE":
 		w.WriteHeader(http.StatusOK)
 		s := r.FormValue("id")
 		id, err := strconv.Atoi(s)
 		checkErr(err)
-		db.DeleteUser(id)
+		pg.DeleteUser(id)
 	default:
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(`{"message": "not found"}`))
 	}
-
 	json.NewEncoder(w).Encode(Users)
 }
 
