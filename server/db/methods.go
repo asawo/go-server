@@ -15,7 +15,28 @@ type User struct {
 // Users contains multiple user data
 var Users []User
 
-func getUsers(db *sql.DB) []User {
+// ConnectToDb opens a connection to a psql db
+func ConnectToDb() *sql.DB {
+	const (
+		DB_USER     = "postgres"
+		DB_PASSWORD = ""
+		DB_NAME     = "test"
+	)
+
+	dbConfig := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable",
+		DB_USER, DB_PASSWORD, DB_NAME)
+
+	pg, err := sql.Open("postgres", dbConfig)
+	checkErr(err)
+
+	err = pg.Ping()
+	checkErr(err)
+
+	return pg
+}
+
+// GetUsers fetches users from db
+func GetUsers(db *sql.DB) []User {
 	fmt.Println("#getUsers()")
 	Users = []User{}
 
@@ -36,16 +57,19 @@ func getUsers(db *sql.DB) []User {
 	return Users
 }
 
-func createUser(db *sql.DB, name string) {
+// CreateUser inserts new user into db
+func CreateUser(db *sql.DB, name string) {
 	fmt.Println("#createUser()")
 
 	sqlStatement := `INSERT INTO test (name) VALUES ($1);`
 	_, err := db.Exec(sqlStatement, name)
 	checkErr(err)
 	fmt.Printf("Added user %s\n", name)
+	GetUsers(db)
 }
 
-func updateUser(db *sql.DB, id int, name string) {
+// UpdateUser updates user in db
+func UpdateUser(db *sql.DB, id int, name string) {
 	fmt.Println("#updateUser()")
 	sqlStatement := `
 UPDATE test 
@@ -55,10 +79,11 @@ WHERE id = $2;`
 	_, err := db.Exec(sqlStatement, name, id)
 	checkErr(err)
 	fmt.Printf("Updated user id %d's name to %s\n", id, name)
-
+	GetUsers(db)
 }
 
-func deleteUser(db *sql.DB, id int) {
+// DeleteUser deletes user from db
+func DeleteUser(db *sql.DB, id int) {
 	fmt.Println("#deleteUser()")
 	sqlStatement := `
 DELETE FROM test  
@@ -67,6 +92,7 @@ WHERE id = $1;`
 	_, err := db.Exec(sqlStatement, id)
 	checkErr(err)
 	fmt.Printf("Deleted user id %d\n", id)
+	GetUsers(db)
 }
 
 func checkErr(err error) {
