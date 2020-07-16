@@ -15,7 +15,7 @@ type User struct {
 // Users contains multiple user data
 var Users []User
 
-func getUsers(db *sql.DB) Users {
+func getUsers(db *sql.DB) []User {
 	fmt.Println("#getUsers()")
 	Users = []User{}
 
@@ -36,18 +36,16 @@ func getUsers(db *sql.DB) Users {
 	return Users
 }
 
-func (db *sql.DB, name string) createUser() Users {
+func createUser(db *sql.DB, name string) {
 	fmt.Println("#createUser()")
 
 	sqlStatement := `INSERT INTO test (name) VALUES ($1);`
 	_, err := db.Exec(sqlStatement, name)
 	checkErr(err)
 	fmt.Printf("Added user %s\n", name)
-
-	return getUsers(db)
 }
 
-func (db *sql.DB, id int, name string) updateUser() Users {
+func updateUser(db *sql.DB, id int, name string) {
 	fmt.Println("#updateUser()")
 	sqlStatement := `
 UPDATE test 
@@ -58,10 +56,9 @@ WHERE id = $2;`
 	checkErr(err)
 	fmt.Printf("Updated user id %d's name to %s\n", id, name)
 
-	return getUsers(db)
 }
 
-func (db *sql.DB, id int) deleteUser() Users {
+func deleteUser(db *sql.DB, id int) {
 	fmt.Println("#deleteUser()")
 	sqlStatement := `
 DELETE FROM test  
@@ -70,8 +67,6 @@ WHERE id = $1;`
 	_, err := db.Exec(sqlStatement, id)
 	checkErr(err)
 	fmt.Printf("Deleted user id %d\n", id)
-
-	return getUsers(db)
 }
 
 func checkErr(err error) {

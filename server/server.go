@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	_ "go-server/server/db"
 	"log"
 	"net/http"
 	"strconv"
