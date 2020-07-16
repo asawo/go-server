@@ -8,9 +8,9 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// PostgresDB
+// PostgresDb is a sql.DB struct
 type PostgresDb struct {
-	db *sql.DB
+	pg *sql.DB
 }
 
 // User struct contains user data
@@ -23,7 +23,7 @@ type User struct {
 var Users []User
 
 // ConnectToDb opens a connection to a psql db
-func ConnectToDb() *PostgresDb {
+func ConnectToDb() *sql.DB {
 	const (
 		DB_USER     = "postgres"
 		DB_PASSWORD = ""
@@ -47,10 +47,10 @@ func (db *PostgresDb) GetUsers() []User {
 	fmt.Println("#getUsers()")
 	Users = []User{}
 
-	rows, err := db.Query("SELECT * FROM test;")
+	rows, err := db.pg.Query("SELECT * FROM test;")
 	checkErr(err)
 	defer rows.Close()
-	defer db.Close()
+	defer db.pg.Close()
 
 	fmt.Println(" id | username ")
 	fmt.Println("----|---------")
@@ -69,10 +69,10 @@ func (db *PostgresDb) CreateUser(name string) {
 	fmt.Println("#createUser()")
 
 	sqlStatement := `INSERT INTO test (name) VALUES ($1);`
-	_, err := db.Exec(sqlStatement, name)
+	_, err := db.pg.Exec(sqlStatement, name)
 	checkErr(err)
 	fmt.Printf("Added user %s\n", name)
-	GetUsers(db)
+	db.GetUsers()
 }
 
 // UpdateUser updates user in db
@@ -83,10 +83,10 @@ UPDATE test
 SET "name" = $1 
 WHERE id = $2;`
 
-	_, err := db.Exec(sqlStatement, name, id)
+	_, err := db.pg.Exec(sqlStatement, name, id)
 	checkErr(err)
 	fmt.Printf("Updated user id %d's name to %s\n", id, name)
-	GetUsers(db)
+	db.GetUsers()
 }
 
 // DeleteUser deletes user from db
@@ -96,10 +96,10 @@ func (db *PostgresDb) DeleteUser(id int) {
 DELETE FROM test  
 WHERE id = $1;`
 
-	_, err := db.Exec(sqlStatement, id)
+	_, err := db.pg.Exec(sqlStatement, id)
 	checkErr(err)
 	fmt.Printf("Deleted user id %d\n", id)
-	GetUsers(db)
+	db.GetUsers()
 }
 
 func checkErr(err error) {

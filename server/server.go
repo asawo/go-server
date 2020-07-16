@@ -1,15 +1,19 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"go-server/server/db"
 	"log"
 	"net/http"
 	"strconv"
-
-	_ "github.com/lib/pq"
 )
+
+// PostgresDb is a sql.DB struct
+type PostgresDb struct {
+	pg *sql.DB
+}
 
 // Users contains multiple user data
 var Users []db.User
@@ -34,24 +38,24 @@ func users(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		w.WriteHeader(http.StatusOK)
-		Users = pg.db.GetUsers()
+		Users = db.GetUsers()
 	case "POST":
 		w.WriteHeader(http.StatusCreated)
 		name := r.FormValue("name")
-		db.CreateUser(pg, name)
+		db.CreateUser(name)
 	case "PUT":
 		w.WriteHeader(http.StatusAccepted)
 		s := r.FormValue("id")
 		id, err := strconv.Atoi(s)
 		checkErr(err)
 		newName := r.FormValue("new name")
-		db.UpdateUser(pg, id, newName)
+		db.UpdateUser(id, newName)
 	case "DELETE":
 		w.WriteHeader(http.StatusOK)
 		s := r.FormValue("id")
 		id, err := strconv.Atoi(s)
 		checkErr(err)
-		db.DeleteUser(pg, id)
+		db.DeleteUser(id)
 	default:
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(`{"message": "not found"}`))
