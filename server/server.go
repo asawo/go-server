@@ -88,6 +88,7 @@ func connectToDb() *sql.DB {
 func getUsers(db *sql.DB) []User {
 	fmt.Println("#getUsers()")
 	Users = []User{}
+
 	rows, err := db.Query("SELECT * FROM test;")
 	checkErr(err)
 	defer rows.Close()
