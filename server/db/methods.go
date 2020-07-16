@@ -4,7 +4,14 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+
+	_ "github.com/lib/pq"
 )
+
+// PostgresDB
+type PostgresDb struct {
+	db *sql.DB
+}
 
 // User struct contains user data
 type User struct {
@@ -16,7 +23,7 @@ type User struct {
 var Users []User
 
 // ConnectToDb opens a connection to a psql db
-func ConnectToDb() *sql.DB {
+func ConnectToDb() *PostgresDb {
 	const (
 		DB_USER     = "postgres"
 		DB_PASSWORD = ""
@@ -36,7 +43,7 @@ func ConnectToDb() *sql.DB {
 }
 
 // GetUsers fetches users from db
-func GetUsers(db *sql.DB) []User {
+func (db *PostgresDb) GetUsers() []User {
 	fmt.Println("#getUsers()")
 	Users = []User{}
 
@@ -58,7 +65,7 @@ func GetUsers(db *sql.DB) []User {
 }
 
 // CreateUser inserts new user into db
-func CreateUser(db *sql.DB, name string) {
+func (db *PostgresDb) CreateUser(name string) {
 	fmt.Println("#createUser()")
 
 	sqlStatement := `INSERT INTO test (name) VALUES ($1);`
@@ -69,7 +76,7 @@ func CreateUser(db *sql.DB, name string) {
 }
 
 // UpdateUser updates user in db
-func UpdateUser(db *sql.DB, id int, name string) {
+func (db *PostgresDb) UpdateUser(id int, name string) {
 	fmt.Println("#updateUser()")
 	sqlStatement := `
 UPDATE test 
@@ -83,7 +90,7 @@ WHERE id = $2;`
 }
 
 // DeleteUser deletes user from db
-func DeleteUser(db *sql.DB, id int) {
+func (db *PostgresDb) DeleteUser(id int) {
 	fmt.Println("#deleteUser()")
 	sqlStatement := `
 DELETE FROM test  

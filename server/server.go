@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"go-server/server/db"
-	_ "go-server/server/db"
 	"log"
 	"net/http"
 	"strconv"
@@ -35,7 +34,7 @@ func users(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		w.WriteHeader(http.StatusOK)
-		Users = db.GetUsers(pg)
+		Users = pg.db.GetUsers()
 	case "POST":
 		w.WriteHeader(http.StatusCreated)
 		name := r.FormValue("name")
