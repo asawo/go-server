@@ -8,11 +8,6 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// PostgresDb is a sql.DB struct
-type PostgresDb struct {
-	pg *sql.DB
-}
-
 // User struct contains user data
 type User struct {
 	ID   int    `json:"userid"`
@@ -22,8 +17,15 @@ type User struct {
 // Users contains multiple user data
 var Users []User
 
+// PostgresDb is a sql.DB struct
+type PostgresDb struct {
+	db *sql.DB
+}
+
+var postgres PostgresDb
+
 // ConnectToDb opens a connection to a psql db
-func (db *PostgresDb) ConnectToDb() *PostgresDb {
+func ConnectToDb() PostgresDb {
 	const (
 		DB_USER     = "postgres"
 		DB_PASSWORD = ""
@@ -33,24 +35,25 @@ func (db *PostgresDb) ConnectToDb() *PostgresDb {
 	dbConfig := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable",
 		DB_USER, DB_PASSWORD, DB_NAME)
 
-	pg, err := db.pg.Open("postgres", dbConfig)
+	var err error
+	postgres.db, err = sql.Open("postgres", dbConfig)
 	checkErr(err)
 
-	err = pg.Ping()
+	err = postgres.db.Ping()
 	checkErr(err)
 
-	return pg
+	return postgres
 }
 
 // GetUsers fetches users from db
-func (db *PostgresDb) GetUsers() []User {
+func (postgres *PostgresDb) GetUsers() []User {
 	fmt.Println("#getUsers()")
 	Users = []User{}
 
-	rows, err := db.pg.Query("SELECT * FROM test;")
+	rows, err := postgres.db.Query("SELECT * FROM test;")
 	checkErr(err)
 	defer rows.Close()
-	defer db.pg.Close()
+	defer postgres.db.Close()
 
 	fmt.Println(" id | username ")
 	fmt.Println("----|---------")
@@ -65,41 +68,41 @@ func (db *PostgresDb) GetUsers() []User {
 }
 
 // CreateUser inserts new user into db
-func (db *PostgresDb) CreateUser(name string) {
+func (postgres *PostgresDb) CreateUser(name string) {
 	fmt.Println("#createUser()")
 
 	sqlStatement := `INSERT INTO test (name) VALUES ($1);`
-	_, err := db.pg.Exec(sqlStatement, name)
+	_, err := postgres.db.Exec(sqlStatement, name)
 	checkErr(err)
 	fmt.Printf("Added user %s\n", name)
-	db.GetUsers()
+	postgres.GetUsers()
 }
 
 // UpdateUser updates user in db
-func (db *PostgresDb) UpdateUser(id int, name string) {
+func (postgres *PostgresDb) UpdateUser(id int, name string) {
 	fmt.Println("#updateUser()")
 	sqlStatement := `
 UPDATE test 
 SET "name" = $1 
 WHERE id = $2;`
 
-	_, err := db.pg.Exec(sqlStatement, name, id)
+	_, err := postgres.db.Exec(sqlStatement, name, id)
 	checkErr(err)
 	fmt.Printf("Updated user id %d's name to %s\n", id, name)
-	db.GetUsers()
+	postgres.GetUsers()
 }
 
 // DeleteUser deletes user from db
-func (db *PostgresDb) DeleteUser(id int) {
+func (postgres *PostgresDb) DeleteUser(id int) {
 	fmt.Println("#deleteUser()")
 	sqlStatement := `
 DELETE FROM test  
 WHERE id = $1;`
 
-	_, err := db.pg.Exec(sqlStatement, id)
+	_, err := postgres.db.Exec(sqlStatement, id)
 	checkErr(err)
 	fmt.Printf("Deleted user id %d\n", id)
-	db.GetUsers()
+	postgres.GetUsers()
 }
 
 func checkErr(err error) {
