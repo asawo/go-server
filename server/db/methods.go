@@ -23,7 +23,7 @@ type User struct {
 var Users []User
 
 // ConnectToDb opens a connection to a psql db
-func ConnectToDb() *sql.DB {
+func (db *PostgresDb) ConnectToDb() *PostgresDb {
 	const (
 		DB_USER     = "postgres"
 		DB_PASSWORD = ""
@@ -33,7 +33,7 @@ func ConnectToDb() *sql.DB {
 	dbConfig := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable",
 		DB_USER, DB_PASSWORD, DB_NAME)
 
-	pg, err := sql.Open("postgres", dbConfig)
+	pg, err := db.pg.Open("postgres", dbConfig)
 	checkErr(err)
 
 	err = pg.Ping()

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"go-server/server/db"
@@ -9,11 +8,6 @@ import (
 	"net/http"
 	"strconv"
 )
-
-// PostgresDb is a sql.DB struct
-type PostgresDb struct {
-	pg *sql.DB
-}
 
 // Users contains multiple user data
 var Users []db.User
@@ -30,15 +24,15 @@ func home(w http.ResponseWriter, r *http.Request) {
 
 func users(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-
 	pg := db.ConnectToDb()
+
 	err := r.ParseForm()
 	checkErr(err)
 
 	switch r.Method {
 	case "GET":
 		w.WriteHeader(http.StatusOK)
-		Users = db.GetUsers()
+		Users = pg.db.GetUsers()
 	case "POST":
 		w.WriteHeader(http.StatusCreated)
 		name := r.FormValue("name")
@@ -72,7 +66,6 @@ func checkErr(err error) {
 
 func main() {
 	fmt.Println("Server is running on localhost:8080")
-
 	handleRequests()
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
