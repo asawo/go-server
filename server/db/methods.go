@@ -17,8 +17,8 @@ type User struct {
 // Users contains multiple user data
 var Users []User
 
-// CRUD interface has read/write methods for the DB
-type CRUD interface {
+// Postgres interface has read/write methods for the DB
+type Postgres interface {
 	GetUsers() []User
 	CreateUser(name string)
 	UpdateUser(id int, name string)
@@ -31,6 +31,9 @@ type PostgresDb struct {
 }
 
 var postgres PostgresDb
+
+// PostgresInterface interface
+// var PostgresInterface Postgres
 
 // ConnectToDb opens a connection to a psql db
 func ConnectToDb() PostgresDb {
@@ -51,6 +54,12 @@ func ConnectToDb() PostgresDb {
 	checkErr(err)
 
 	return postgres
+}
+
+// RandomFunction passing in a postgres interface
+func RandomFunction(pgi Postgres) []User {
+	fmt.Println(pgi.GetUsers())
+	return pgi.GetUsers()
 }
 
 // GetUsers fetches users from db

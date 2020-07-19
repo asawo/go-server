@@ -7,13 +7,15 @@ import (
 	"testing"
 )
 
-type Mock struct{}
+type mock struct{}
 
-var mock Mock
+var m mock
 
 var Users []db.User
+var postgresDb db.PostgresDb
+var postgres db.Postgres
 
-func (m Mock) GetUsers() []db.User {
+func (m mock) GetUsers() []db.User {
 	testUser := db.User{5, "Test"}
 	testUser2 := db.User{6, "Arthur"}
 	mockResponse := []db.User{
@@ -23,12 +25,12 @@ func (m Mock) GetUsers() []db.User {
 	return mockResponse
 }
 
-func (m Mock) CreateUser(name string) {
+func (m mock) CreateUser(name string) {
 	testUser := db.User{5, name}
 	Users = append(Users, testUser)
 }
 
-func (m Mock) UpdateUser(id int, name string) {
+func (m mock) UpdateUser(id int, name string) {
 
 	for i, value := range Users {
 		fmt.Println(i, value)
@@ -39,7 +41,7 @@ func (m Mock) UpdateUser(id int, name string) {
 	fmt.Printf("User with id of %v does not exist", id)
 }
 
-func (m Mock) DeleteUser(id int) {
+func (m mock) DeleteUser(id int) {
 	testUser := db.User{5, "Test"}
 
 	for i, value := range Users {
@@ -52,13 +54,13 @@ func (m Mock) DeleteUser(id int) {
 	fmt.Println("Users", Users)
 }
 
-var pg db.PostgresDb = db.ConnectToDb()
-
 func TestGetUsers(t *testing.T) {
-	Users := pg.GetUsers()
+	// pg := db.ConnectToDb()
+	// Users := pg.GetUsers()
 	testUser := db.User{5, "Test"}
-
-	if Users[1] != testUser {
+	Users := db.RandomFunction(m)
+	fmt.Println(Users)
+	if Users[0] != testUser {
 		t.Errorf("User 1 should be %v, got %v", testUser, Users[1])
 	}
 }
