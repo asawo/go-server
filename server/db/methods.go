@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	_ "github.com/lib/pq"
+	_ "github.com/lib/pq" // For connecting to the postgres DB
 )
 
 // User struct contains user data
@@ -56,7 +56,7 @@ func (postgres *PostgresDb) GetUsers() []User {
 	defer postgres.Db.Close()
 
 	fmt.Println(" id | username ")
-	fmt.Println("----|---------")
+	fmt.Println("----|----------")
 	for rows.Next() {
 		var dbUser User
 		err = rows.Scan(&dbUser.ID, &dbUser.Name)
@@ -64,6 +64,7 @@ func (postgres *PostgresDb) GetUsers() []User {
 		Users = append(Users, dbUser)
 		fmt.Printf("%3v |%8v \n", dbUser.ID, dbUser.Name)
 	}
+
 	return Users
 }
 

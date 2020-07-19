@@ -1,27 +1,59 @@
 package db
 
 import (
+	"fmt"
 	"testing"
 )
 
-// type SQLDB interface {
-// 	Exec(query, args string) (sql.Result, error)
-// }
+type MockPostgresDb interface {
+	GetUsers() []User
+	CreateUser(name string)
+	UpdateUser(id int, name string)
+	DeleteUser(id int)
+}
 
-// type MockDB struct {
-// 	callParams []interface{}
-// }
+type Mock struct{}
 
-// func (mdb *MockDB) Exec(query, args string) (sql.Result, error) {
-// 	mdb.callParams = []interface{}{query}
-// 	mdb.callParams = append(mdb.callParams, args)
+var mock Mock
 
-// 	return nil, nil
-// }
+func (m Mock) GetUsers() []User {
+	testUser := User{5, "Test"}
+	testUser2 := User{6, "Arthur"}
+	mockResponse := []User{
+		testUser,
+		testUser2,
+	}
+	return mockResponse
+}
 
-// func (mdb *MockDB) CalledWith() []interface{} {
-// 	return mdb.callParams
-// }
+func (m Mock) CreateUser(name string) {
+	testUser := User{5, name}
+	Users = append(Users, testUser)
+}
+
+func (m Mock) UpdateUser(id int, name string) {
+
+	for i, value := range Users {
+		fmt.Println(i, value)
+		if value.ID == id {
+			Users[i] = User{id, name}
+		}
+	}
+	fmt.Printf("User with id of %v does not exist", id)
+}
+
+func (m Mock) DeleteUser(id int) {
+	testUser := User{5, "Test"}
+
+	for i, value := range Users {
+		fmt.Println(i, value)
+		if value == testUser {
+			Users = append(Users[:i], Users[i+1:]...)
+		}
+	}
+
+	fmt.Println("Users", Users)
+}
 
 var pg PostgresDb = ConnectToDb()
 
@@ -30,6 +62,6 @@ func TestGetUsers(t *testing.T) {
 	testUser := User{5, "Test"}
 
 	if Users[1] != testUser {
-		t.Errorf("User 1 should be {5 Test}, got %v", Users[1])
+		t.Errorf("User 1 should be %v, got %v", testUser, Users[1])
 	}
 }
