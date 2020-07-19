@@ -1,25 +1,22 @@
-package db
+package db_test
 
 import (
 	"fmt"
+	"go-server/server/db"
+	_ "go-server/server/db"
 	"testing"
 )
-
-type MockPostgresDb interface {
-	GetUsers() []User
-	CreateUser(name string)
-	UpdateUser(id int, name string)
-	DeleteUser(id int)
-}
 
 type Mock struct{}
 
 var mock Mock
 
-func (m Mock) GetUsers() []User {
-	testUser := User{5, "Test"}
-	testUser2 := User{6, "Arthur"}
-	mockResponse := []User{
+var Users []db.User
+
+func (m Mock) GetUsers() []db.User {
+	testUser := db.User{5, "Test"}
+	testUser2 := db.User{6, "Arthur"}
+	mockResponse := []db.User{
 		testUser,
 		testUser2,
 	}
@@ -27,7 +24,7 @@ func (m Mock) GetUsers() []User {
 }
 
 func (m Mock) CreateUser(name string) {
-	testUser := User{5, name}
+	testUser := db.User{5, name}
 	Users = append(Users, testUser)
 }
 
@@ -36,14 +33,14 @@ func (m Mock) UpdateUser(id int, name string) {
 	for i, value := range Users {
 		fmt.Println(i, value)
 		if value.ID == id {
-			Users[i] = User{id, name}
+			Users[i] = db.User{id, name}
 		}
 	}
 	fmt.Printf("User with id of %v does not exist", id)
 }
 
 func (m Mock) DeleteUser(id int) {
-	testUser := User{5, "Test"}
+	testUser := db.User{5, "Test"}
 
 	for i, value := range Users {
 		fmt.Println(i, value)
@@ -55,11 +52,11 @@ func (m Mock) DeleteUser(id int) {
 	fmt.Println("Users", Users)
 }
 
-var pg PostgresDb = ConnectToDb()
+var pg db.PostgresDb = db.ConnectToDb()
 
 func TestGetUsers(t *testing.T) {
 	Users := pg.GetUsers()
-	testUser := User{5, "Test"}
+	testUser := db.User{5, "Test"}
 
 	if Users[1] != testUser {
 		t.Errorf("User 1 should be %v, got %v", testUser, Users[1])

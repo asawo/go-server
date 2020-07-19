@@ -17,6 +17,14 @@ type User struct {
 // Users contains multiple user data
 var Users []User
 
+// CRUD interface has read/write methods for the DB
+type CRUD interface {
+	GetUsers() []User
+	CreateUser(name string)
+	UpdateUser(id int, name string)
+	DeleteUser(id int)
+}
+
 // PostgresDb is a sql.DB struct
 type PostgresDb struct {
 	Db *sql.DB
