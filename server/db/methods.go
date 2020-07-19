@@ -75,7 +75,6 @@ func (postgres *PostgresDb) CreateUser(name string) {
 	_, err := postgres.Db.Exec(sqlStatement, name)
 	checkErr(err)
 	fmt.Printf("Added user %s\n", name)
-	postgres.GetUsers()
 }
 
 // UpdateUser updates user in db
@@ -89,7 +88,6 @@ WHERE id = $2;`
 	_, err := postgres.Db.Exec(sqlStatement, name, id)
 	checkErr(err)
 	fmt.Printf("Updated user id %d's name to %s\n", id, name)
-	postgres.GetUsers()
 }
 
 // DeleteUser deletes user from db
@@ -102,7 +100,6 @@ WHERE id = $1;`
 	_, err := postgres.Db.Exec(sqlStatement, id)
 	checkErr(err)
 	fmt.Printf("Deleted user id %d\n", id)
-	postgres.GetUsers()
 }
 
 func checkErr(err error) {

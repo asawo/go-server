@@ -32,6 +32,7 @@ func users(w http.ResponseWriter, r *http.Request) {
 	case "GET":
 		w.WriteHeader(http.StatusOK)
 		Users = pg.GetUsers()
+		fmt.Println(Users[1])
 	case "POST":
 		w.WriteHeader(http.StatusCreated)
 		name := r.FormValue("name")
